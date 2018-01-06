@@ -1,0 +1,78 @@
+{
+  "name": "react-geetest-captcha",
+  "version": "0.0.1",
+  "description": "A react.js CAPTCHA for GEETEST.com",
+  "browserslist": [
+    ">1%",
+    "last 4 versions",
+    "Firefox ESR",
+    "not ie < 9"
+  ],
+  "files": [
+    "dist/",
+    "lib/",
+    "LICENSE"
+  ],
+  "main": "lib/index.js",
+  "scripts": {
+    "precommit": "lint-staged"
+  },
+  "lint-staged": {
+    "*.{js,jsx}": [
+      "eslint --fix",
+      "git add"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Mrhoho/react-geetest-captcha.git"
+  },
+  "keywords": [
+    "react",
+    "react-component",
+    "CAPTCHA",
+    "component"
+  ],
+  "author": "mrhoho",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Mrhoho/react-geetest-captcha/issues"
+  },
+  "homepage": "https://github.com/Mrhoho/react-geetest-captcha#readme",
+  "devDependencies": {
+    "babel-core": "^6.26.0",
+    "babel-preset-env": "^1.6.1",
+    "babel-preset-react": "^6.24.1",
+    "babel-preset-react-optimize": "^1.0.1",
+    "babel-preset-stage-2": "^6.24.1",
+    "del": "^3.0.0",
+    "eslint": "^4.14.0",
+    "eslint-config-airbnb": "^16.1.0",
+    "eslint-config-prettier": "^2.9.0",
+    "eslint-plugin-import": "^2.8.0",
+    "eslint-plugin-jsx-a11y": "^6.0.3",
+    "eslint-plugin-prettier": "^2.4.0",
+    "eslint-plugin-react": "^7.5.1",
+    "gulp": "^3.9.1",
+    "gulp-babel": "^7.0.0",
+    "gulp-derequire": "^2.1.0",
+    "gulp-flatten": "^0.4.0",
+    "gulp-header": "^1.8.9",
+    "gulp-util": "^3.0.8",
+    "husky": "^0.14.3",
+    "lint-staged": "^6.0.0",
+    "prettier": "^1.9.2",
+    "react": "^16.2.0",
+    "react-dom": "^16.2.0",
+    "run-sequence": "^2.2.1",
+    "webpack": "^3.10.0",
+    "webpack-stream": "^4.0.0"
+  },
+  "peerDependencies": {
+    "prop-types": "^15.6.0",
+    "react": "^16.2.0"
+  },
+  "dependencies": {
+    "lodash": "^4.17.4"
+  }
+}
