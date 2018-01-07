@@ -177,7 +177,7 @@ class RGCaptcha extends React.Component {
     const { onReady, onSuccess, onClose, onError } = props;
     if (ins) {
       ins.handleReady(onReady);
-      ins.handleSuccess(onSuccess);
+      ins.handleSuccess(() => onSuccess(ins.getValidate()));
       ins.handleClose(onClose);
       ins.handleError(onError);
     }
@@ -195,7 +195,12 @@ class RGCaptcha extends React.Component {
 
     const loadingTip = loading ? <span> loading... </span> : null;
     return (
-      <div style={{ display: product === 'bind' ? 'none' : 'block' }}>
+      <div
+        style={{
+          display: product === 'bind' ? 'none' : 'block',
+          height: 44,
+        }}
+      >
         <div style={{ display: loading ? 'block' : 'none' }}>{loadingTip}</div>
         <div
           style={{ display: loading ? 'none' : 'block' }}

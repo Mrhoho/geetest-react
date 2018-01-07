@@ -9,21 +9,25 @@ export function appendTo(name, position) {
   if (ins && isFunction(ins.appendTo)) return ins.appendTo(position);
   return null;
 }
+
 export function bindForm(name, position) {
   const ins = storage.get(name);
   if (ins && isFunction(ins.bindForm)) return ins.bindForm(position);
   return null;
 }
+
 export function getValidate(name) {
   const ins = storage.get(name);
   if (ins && isFunction(ins.getValidate)) return ins.getValidate();
   return null;
 }
+
 export function reset(name) {
   const ins = storage.get(name);
   if (ins && isFunction(ins.reset)) return ins.reset();
   return null;
 }
+
 export function verify(name) {
   const ins = storage.get(name);
   if (ins && isFunction(ins.verify)) return ins.verify();
@@ -33,4 +37,9 @@ export function verify(name) {
 export default {
   storage,
   RGCaptcha: component,
+  appendTo,
+  bindForm,
+  getValidate,
+  reset,
+  verify,
 };
