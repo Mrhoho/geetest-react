@@ -4,6 +4,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import isFunction from 'lodash/isFunction';
+import isObject from 'lodash/isObject';
+import shallowEqualObjects from 'shallow-equal/objects';
 import storage from './storage';
 import initGeetest from './gt';
 
@@ -25,6 +27,77 @@ function cleanUpScript() {
   }
 }
 
+function buildInsEventFunc(ins) {
+  if (ins.hasBuildEventFunc) return;
+  // ins.onReady 等方法防止多次绑定 offline模式貌似没有一些方法判断一下
+  if (isFunction(ins.onReady))
+    ins.onReady(() => {
+      if (typeof ins.readyFunc === 'function') ins.readyFunc();
+    });
+  if (isFunction(ins.onSuccess))
+    ins.onSuccess(() => {
+      if (typeof ins.successFunc === 'function') ins.successFunc();
+    });
+  if (isFunction(ins.onClose))
+    ins.onClose(() => {
+      if (typeof ins.closeFunc === 'function') ins.closeFunc();
+    });
+  if (isFunction(ins.onError))
+    ins.onError(() => {
+      if (typeof ins.errorFunc === 'function') ins.errorFunc();
+    });
+
+  ins.handleReady = func => {
+    ins.readyFunc = func;
+  };
+  ins.handleSuccess = func => {
+    ins.successFunc = func;
+  };
+  ins.handleClose = func => {
+    ins.closeFunc = func;
+  };
+  ins.handleError = func => {
+    ins.errorFunc = func;
+  };
+
+  ins.hasBuildEventFunc = true;
+}
+
+function isDifferentConfig(props, nextProps) {
+  const {
+    name,
+    data,
+    width,
+    product,
+    lang,
+    protocol,
+    area,
+    nextWidth,
+    bgColor,
+    timeout,
+    shouldReinitialize,
+  } = props;
+
+  if (isFunction(shouldReinitialize))
+    return shouldReinitialize(props, nextProps);
+
+  if (
+    name !== nextProps.name ||
+    width !== nextProps.width ||
+    product !== nextProps.product ||
+    lang !== nextProps.lang ||
+    protocol !== nextProps.protocol ||
+    area !== nextProps.area ||
+    nextWidth !== nextProps.nextWidth ||
+    bgColor !== nextProps.bgColor ||
+    timeout !== nextProps.timeout ||
+    (isObject(nextProps.data) && !shallowEqualObjects(data, nextProps))
+  ) {
+    return true;
+  }
+  return false;
+}
+
 class RGCaptcha extends React.Component {
   constructor(props) {
     super(props);
@@ -39,29 +112,7 @@ class RGCaptcha extends React.Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    const {
-      name,
-      width,
-      product,
-      lang,
-      protocol,
-      area,
-      nextWidth,
-      bgColor,
-      timeout,
-    } = this.props;
-    if (
-      name !== nextProps.name ||
-      width !== nextProps.width ||
-      product !== nextProps.product ||
-      lang !== nextProps.lang ||
-      protocol !== nextProps.protocol ||
-      area !== nextProps.area ||
-      nextWidth !== nextProps.nextWidth ||
-      bgColor !== nextProps.bgColor ||
-      timeout !== nextProps.timeout
-    ) {
-      storage.remove(name);
+    if (isDifferentConfig(this.props, nextProps)) {
       this.load();
     } else {
       this.bindEventFunc(nextProps);
@@ -73,12 +124,14 @@ class RGCaptcha extends React.Component {
   }
 
   componentWillUnmount() {
+    const { name } = this.props;
+
     cleanUpScript();
+    storage.remove(name);
   }
 
   load() {
     if (!(window && window.document)) return;
-
     const { data } = this.props;
 
     this.setState({
@@ -107,69 +160,42 @@ class RGCaptcha extends React.Component {
       timeout,
     } = this.props;
 
+    const newConfig = {
+      gt: data.gt,
+      challenge: data.challenge,
+      offline: !data.success,
+      new_captcha: !!data.new_captcha,
+      width,
+      product,
+      lang,
+      protocol,
+      area,
+      next_width: nextWidth,
+      bg_color: bgColor,
+      timeout,
+    };
+
     try {
       // http://docs.geetest.com/install/client/web-front/
-      initGeetest(
-        {
-          gt: data.gt,
-          challenge: data.challenge,
-          offline: !data.success,
-          new_captcha: !!data.new_captcha,
-          width,
-          product,
-          lang,
-          protocol,
-          area,
-          next_width: nextWidth,
-          bg_color: bgColor,
-          timeout,
-        },
-        ins => {
-          // 1.防止重复调用 2.offline 模式没有这些方法所以判断一下
-          if (isFunction(ins.onReady))
-            ins.onReady(() => {
-              if (typeof ins.readyFunc === 'function') ins.readyFunc();
-            });
-          if (isFunction(ins.onSuccess))
-            ins.onSuccess(() => {
-              if (typeof ins.successFunc === 'function') ins.successFunc();
-            });
-          if (isFunction(ins.onClose))
-            ins.onClose(() => {
-              if (typeof ins.closeFunc === 'function') ins.closeFunc();
-            });
-          if (isFunction(ins.onError))
-            ins.onError(() => {
-              if (typeof ins.errorFunc === 'function') ins.errorFunc();
-            });
+      initGeetest(newConfig, newIns => {
+        buildInsEventFunc(newIns);
 
-          ins.handleReady = func => {
-            ins.readyFunc = func;
-          };
-          ins.handleSuccess = func => {
-            ins.successFunc = func;
-          };
-          ins.handleClose = func => {
-            ins.closeFunc = func;
-          };
-          ins.handleError = func => {
-            ins.errorFunc = func;
-          };
-
-          storage.add(name, ins);
-          this.ins = ins;
-
-          this.bindEventFunc(this.props);
-          this.setState({
-            loading: false,
-          });
-
-          this.show();
-        },
-      );
+        storage.add(name, newIns);
+        this.loadIns(newIns);
+        this.setState({
+          loading: false,
+        });
+      });
     } catch (e) {
       console.error(e); // eslint-disable-line
     }
+  }
+
+  loadIns(ins) {
+    this.ins = ins;
+
+    this.bindEventFunc(this.props);
+    this.show();
   }
 
   bindEventFunc(props) {
@@ -239,6 +265,8 @@ RGCaptcha.propTypes = {
   onSuccess: PropTypes.func,
   onClose: PropTypes.func,
   onError: PropTypes.func,
+  //
+  shouldReinitialize: PropTypes.func,
 };
 
 RGCaptcha.defaultProps = {
@@ -254,6 +282,7 @@ RGCaptcha.defaultProps = {
   onSuccess: null,
   onClose: null,
   onError: null,
+  shouldReinitialize: null,
 };
 
 export default RGCaptcha;
