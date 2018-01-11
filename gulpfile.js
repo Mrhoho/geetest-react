@@ -47,6 +47,7 @@ const COPYRIGHT_HEADER = `/**
 `;
 
 const babelOpts = {
+  ignore: ['gt.js'],
   presets: [
     // A Babel preset that can automatically determine the Babel plugins and polyfills
     // https://github.com/babel/babel-preset-env
@@ -57,7 +58,6 @@ const babelOpts = {
           browsers: packageData.browserslist,
           uglify: true,
         },
-        modules: false,
         useBuiltIns: false,
         debug: false,
       },
@@ -68,9 +68,6 @@ const babelOpts = {
     // JSX, Flow
     // https://github.com/babel/babel/tree/master/packages/babel-preset-react
     'react',
-    // Optimize React code for the production build
-    // https://github.com/thejameskyle/babel-react-optimize
-    'react-optimize',
   ],
 };
 
