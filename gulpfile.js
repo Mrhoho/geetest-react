@@ -20,7 +20,7 @@ const paths = {
 };
 
 const COPYRIGHT_HEADER = `/**
- * react-geetest-captcha v<%= version %>
+ * ${packageData.name} v<%= version %>
  *
  * MIT License
  *
@@ -76,7 +76,7 @@ function buildDist(opts) {
     output: {
       filename: opts.output,
       libraryTarget: 'umd',
-      library: 'react-geetest-captcha',
+      library: packageData.name,
     },
     plugins: [
       new webpackStream.webpack.DefinePlugin({
@@ -121,7 +121,7 @@ gulp.task('modules', () =>
 gulp.task('dist', ['modules'], () => {
   const opts = {
     debug: true,
-    output: 'react-geetest-captcha.js',
+    output: `${packageData.name}.js`,
   };
   return gulp
     .src('./lib/index.js')
@@ -134,7 +134,7 @@ gulp.task('dist', ['modules'], () => {
 gulp.task('dist:min', ['modules'], () => {
   const opts = {
     debug: false,
-    output: 'react-geetest-captcha.min.js',
+    output: `${packageData.name}.min.js`,
   };
   return gulp
     .src('./lib/index.js')

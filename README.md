@@ -62,25 +62,27 @@ class Demo extends React.Component {
   }
 
   render() {
-    <RGCaptcha
-      name={CAPTCHA_NAME}
-      width="100%"
-      onSuccess={this.handleSuccess}
-      onError={this.handleError}
-      data={() =>
-        ajax
-          .then(resp => {
-            const { captcha } = (resp && resp.data) || {};
-            // console.log(captcha);
-            // {
-            //   "gt": "e385d274eeedb650fa008875ff7b14a2",
-            //   "challenge": "f4873d2af972a38811814f644920b8ab",
-            //   "success": 1,
-            // }
-            return captcha;
-          })
-      }
-    />
+    return (
+      <RGCaptcha
+        name={CAPTCHA_NAME}
+        width="100%"
+        onSuccess={this.handleSuccess}
+        onError={this.handleError}
+        data={() =>
+          ajax
+            .then(resp => {
+              const { captcha } = (resp && resp.data) || {};
+              // console.log(captcha);
+              // {
+              //   "gt": "e385d274eeedb650fa008875ff7b14a2",
+              //   "challenge": "f4873d2af972a38811814f644920b8ab",
+              //   "success": 1,
+              // }
+              return captcha;
+            })
+        }
+      />
+    );
   }
 }
 ```
