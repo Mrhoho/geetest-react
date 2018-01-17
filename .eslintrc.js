@@ -30,7 +30,10 @@ module.exports = {
         trailingComma: 'all',
       },
     ],
-
+    // Automatically convert pure class to function by
+    // babel-plugin-transform-react-pure-class-to-function
+    // https://github.com/kriasoft/react-starter-kit/pull/961
+    'react/prefer-stateless-function': 'off',
   },
 
 };

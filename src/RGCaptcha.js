@@ -5,9 +5,12 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import isFunction from 'lodash/isFunction';
 import isObject from 'lodash/isObject';
+import isNumber from 'lodash/isNumber';
 import shallowEqualObjects from 'shallow-equal/objects';
 import storage from './storage';
 import initGeetest from './gt';
+
+import DefaultLoading from './Loading';
 
 // SPA 切换路由多次初始化导致head标签里脚本与样式越来越多
 function cleanUpScript() {
@@ -112,7 +115,10 @@ class RGCaptcha extends React.Component {
   }
 
   componentWillReceiveProps(nextProps) {
+    const { name } = this.props;
+
     if (isDifferentConfig(this.props, nextProps)) {
+      storage.remove(name);
       this.load();
     } else {
       this.bindEventFunc(nextProps);
@@ -165,7 +171,7 @@ class RGCaptcha extends React.Component {
       challenge: data.challenge,
       offline: !data.success,
       new_captcha: !!data.new_captcha,
-      width,
+      width: isNumber(width) ? `${width}px` : width,
       product,
       lang,
       protocol,
@@ -216,10 +222,19 @@ class RGCaptcha extends React.Component {
   }
 
   render() {
-    const { product } = this.props;
+    const { product, loadingComponent, loadingText } = this.props;
     const { loading } = this.state;
 
-    const loadingTip = loading ? <span> loading... </span> : null;
+    let LoadingTemp;
+
+    if (loadingComponent) {
+      LoadingTemp = React.createElement(loadingComponent, {
+        loading,
+      });
+    } else {
+      LoadingTemp = <DefaultLoading loading={loading} text={loadingText} />;
+    }
+
     return (
       <div
         style={{
@@ -227,7 +242,7 @@ class RGCaptcha extends React.Component {
           height: 44,
         }}
       >
-        <div style={{ display: loading ? 'block' : 'none' }}>{loadingTip}</div>
+        {LoadingTemp}
         <div
           style={{ display: loading ? 'none' : 'block' }}
           ref={box => {
@@ -267,6 +282,8 @@ RGCaptcha.propTypes = {
   onError: PropTypes.func,
   //
   shouldReinitialize: PropTypes.func,
+  loadingComponent: PropTypes.func,
+  loadingText: PropTypes.string,
 };
 
 RGCaptcha.defaultProps = {
@@ -283,6 +300,8 @@ RGCaptcha.defaultProps = {
   onClose: null,
   onError: null,
   shouldReinitialize: null,
+  loadingComponent: null,
+  loadingText: 'loading...',
 };
 
 export default RGCaptcha;

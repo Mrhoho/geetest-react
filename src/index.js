@@ -1,8 +1,8 @@
 import isFunction from 'lodash/isFunction';
 import storage from './storage';
-import component from './component';
+import RGCaptcha from './RGCaptcha';
 
-export { component as RGCaptcha, storage };
+export { RGCaptcha, storage };
 
 export function appendTo(name, position) {
   const ins = storage.get(name);
@@ -36,7 +36,7 @@ export function verify(name) {
 
 export default {
   storage,
-  RGCaptcha: component,
+  RGCaptcha,
   appendTo,
   bindForm,
   getValidate,

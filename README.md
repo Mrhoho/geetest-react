@@ -16,22 +16,24 @@ a react.js component for GEETEST
       - [`name: string`](#name-string)
       - [`data: () => Promise<dataObject, any> | dataObject`](#data---promisedataobject-any--dataobject)
         - [The "dataObject":](#the-dataobject)
-      - [`width: string | number`](#width-string--number)
-      - [`product: 'popup' | 'float' | 'custom' | 'bind'`](#product-popup--float--custom--bind)
-      - [`lang: 'zh-cn' | 'en'`](#lang-zh-cn--en)
-      - [`protocol: 'http://' | 'https://'`](#protocol-http--https)
-      - [`area: string`](#area-string)
-      - [`nextWidth: string`](#nextwidth-string)
-      - [`bgColor: string`](#bgcolor-string)
-      - [`timeout: number`](#timeout-number)
-      - [`onReady: () => any`](#onready---any)
-      - [`onSuccess: (result: resultObject) => any`](#onsuccess-result-resultobject--any)
+      - [`width?: string | number`](#width-string--number)
+      - [`product?: 'popup' | 'float' | 'custom' | 'bind'`](#product-popup--float--custom--bind)
+      - [`lang?: 'zh-cn' | 'en'`](#lang-zh-cn--en)
+      - [`protocol?: 'http://' | 'https://'`](#protocol-http--https)
+      - [`area?: string`](#area-string)
+      - [`nextWidth?: string`](#nextwidth-string)
+      - [`bgColor?: string`](#bgcolor-string)
+      - [`timeout?: number`](#timeout-number)
+      - [`onReady?: () => any`](#onready---any)
+      - [`onSuccess?: (result: resultObject) => any`](#onsuccess-result-resultobject--any)
         - [The "resultObject":](#the-resultobject)
-      - [`onClose: () => any`](#onclose---any)
-      - [`onError: () => any`](#onerror---any)
-      - [`shouldReinitialize: (props: Props, nextProps: Props) => boolean`](#shouldreinitialize-props-props-nextprops-props--boolean)
-  - [`appendTo: (name: stirng) => any`](#appendto-name-stirng--any)
-  - [`bindForm: (name: stirng, position: string) => any`](#bindform-name-stirng-position-string--any)
+      - [`onClose?: () => any`](#onclose---any)
+      - [`onError?: () => any`](#onerror---any)
+      - [`shouldReinitialize?: (props: Props, nextProps: Props) => boolean`](#shouldreinitialize-props-props-nextprops-props--boolean)
+      - [`loadingComponent?: React.Component<{loading: boolean}>`](#loadingcomponent-reactcomponentloading-boolean)
+      - [`loadingText?: string`](#loadingtext-string)
+  - [`appendTo: (name: string) => any`](#appendto-name-string--any)
+  - [`bindForm: (name: string, position: string) => any`](#bindform-name-string-position-string--any)
   - [`getValidate: (name: string) => any`](#getvalidate-name-string--any)
   - [`reset: (name: string) => any`](#reset-name-string--any)
   - [`verify: (name: string) => any`](#verify-name-string--any)
@@ -215,11 +217,15 @@ resultObject = instance.getValidate();
 
 ##### `shouldReinitialize?: (props: Props, nextProps: Props) => boolean`
 
-### `appendTo: (name: stirng) => any`
+##### `loadingComponent?: React.Component<{loading: boolean}>`
+
+##### `loadingText?: string`
+
+### `appendTo: (name: string) => any`
 
 a proxy method for GEETEST instance.appendTo method
 
-### `bindForm: (name: stirng, position: string) => any`
+### `bindForm: (name: string, position: string) => any`
 
 a proxy method for GEETEST instance.bindForm method
 
