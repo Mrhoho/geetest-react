@@ -105,12 +105,14 @@ class RGCaptcha extends React.Component {
   constructor(props) {
     super(props);
     this.ins = null;
+    this.mounted = false;
     this.state = {
       loading: false,
     };
   }
 
   componentDidMount() {
+    this.mounted = true;
     this.load();
   }
 
@@ -134,6 +136,7 @@ class RGCaptcha extends React.Component {
 
     cleanUpScript();
     storage.remove(name);
+    this.mounted = false;
   }
 
   load() {
@@ -183,15 +186,18 @@ class RGCaptcha extends React.Component {
 
     try {
       // http://docs.geetest.com/install/client/web-front/
-      initGeetest(newConfig, newIns => {
-        buildInsEventFunc(newIns);
+      setTimeout(() => {
+        initGeetest(newConfig, newIns => {
+          buildInsEventFunc(newIns);
 
-        storage.add(name, newIns);
-        this.loadIns(newIns);
-        this.setState({
-          loading: false,
+          storage.add(name, newIns);
+          this.loadIns(newIns);
+          if (this.mounted)
+            this.setState({
+              loading: false,
+            });
         });
-      });
+      }, 0);
     } catch (e) {
       console.error(e); // eslint-disable-line
     }
@@ -207,7 +213,7 @@ class RGCaptcha extends React.Component {
   bindEventFunc(props) {
     const { ins } = this;
     const { onReady, onSuccess, onClose, onError } = props;
-    if (ins) {
+    if (ins && ins.hasBuildEventFunc) {
       ins.handleReady(onReady);
       ins.handleSuccess(() => onSuccess(ins.getValidate()));
       ins.handleClose(onClose);
@@ -218,7 +224,7 @@ class RGCaptcha extends React.Component {
   show() {
     const { product } = this.props;
     const { ins, box } = this;
-    if (ins && product !== 'bind') ins.appendTo(box);
+    if (ins && box && product !== 'bind') ins.appendTo(box);
   }
 
   render() {
