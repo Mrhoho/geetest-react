@@ -1,14 +1,10 @@
-/* eslint-disable no-param-reassign */
 /* eslint-disable react/no-unused-prop-types */
 
 import React from 'react';
 import PropTypes from 'prop-types';
 import isFunction from 'lodash/isFunction';
-import isObject from 'lodash/isObject';
-import isNumber from 'lodash/isNumber';
-import shallowEqualObjects from 'shallow-equal/objects';
+import defaults from 'lodash/defaults';
 import storage from './storage';
-import initGeetest from './gt';
 
 import DefaultLoading from './Loading';
 
@@ -30,105 +26,35 @@ function cleanUpScript() {
   }
 }
 
-function buildInsEventFunc(ins) {
-  if (ins.hasBuildEventFunc) return;
-  // ins.onReady 等方法防止多次绑定 offline模式貌似没有一些方法判断一下
-  if (isFunction(ins.onReady))
-    ins.onReady(() => {
-      if (typeof ins.readyFunc === 'function') ins.readyFunc();
-    });
-  if (isFunction(ins.onSuccess))
-    ins.onSuccess(() => {
-      if (typeof ins.successFunc === 'function') ins.successFunc();
-    });
-  if (isFunction(ins.onClose))
-    ins.onClose(() => {
-      if (typeof ins.closeFunc === 'function') ins.closeFunc();
-    });
-  if (isFunction(ins.onError))
-    ins.onError(() => {
-      if (typeof ins.errorFunc === 'function') ins.errorFunc();
-    });
-
-  ins.handleReady = func => {
-    ins.readyFunc = func;
-  };
-  ins.handleSuccess = func => {
-    ins.successFunc = func;
-  };
-  ins.handleClose = func => {
-    ins.closeFunc = func;
-  };
-  ins.handleError = func => {
-    ins.errorFunc = func;
-  };
-
-  ins.hasBuildEventFunc = true;
-}
-
-function isDifferentConfig(props, nextProps) {
-  const {
-    name,
-    data,
-    width,
-    product,
-    lang,
-    protocol,
-    area,
-    nextWidth,
-    bgColor,
-    timeout,
-    shouldReinitialize,
-  } = props;
-
-  if (isFunction(shouldReinitialize))
-    return shouldReinitialize(props, nextProps);
-
-  if (
-    name !== nextProps.name ||
-    width !== nextProps.width ||
-    product !== nextProps.product ||
-    lang !== nextProps.lang ||
-    protocol !== nextProps.protocol ||
-    area !== nextProps.area ||
-    nextWidth !== nextProps.nextWidth ||
-    bgColor !== nextProps.bgColor ||
-    timeout !== nextProps.timeout ||
-    (isObject(nextProps.data) && !shallowEqualObjects(data, nextProps))
-  ) {
-    return true;
-  }
-  return false;
-}
-
 class RGCaptcha extends React.Component {
   constructor(props) {
     super(props);
     this.ins = null;
+    this.busy = false;
+    this.showed = false;
     this.mounted = false;
+    this.hasChanged = false;
     this.state = {
-      loading: false,
+      loading: true,
     };
   }
 
   componentDidMount() {
     this.mounted = true;
-    this.load();
+    this.load(false);
   }
 
-  componentWillReceiveProps(nextProps) {
-    const { name } = this.props;
-
-    if (isDifferentConfig(this.props, nextProps)) {
-      storage.remove(name);
-      this.load();
-    } else {
-      this.bindEventFunc(nextProps);
+  componentDidUpdate() {
+    if (this.busy) {
+      this.hasChanged = true;
+      return;
     }
-  }
-
-  shouldComponentUpdate(nextProps, nextState) {
-    return this.state.loading !== nextState.loading;
+    this.load(true).finally(() => {
+      if (this.hasChanged) {
+        this.hasChanged = false;
+        this.load(true);
+      }
+    });
   }
 
   componentWillUnmount() {
@@ -139,24 +65,36 @@ class RGCaptcha extends React.Component {
     this.mounted = false;
   }
 
-  load() {
-    if (!(window && window.document)) return;
-    const { data } = this.props;
+  async load(useCache) {
+    if (!(window && window.document) || this.busy || !this.mounted) return;
 
-    this.setState({
-      loading: true,
-    });
+    this.busy = true;
 
-    if (isFunction(data)) {
-      data().then(d => {
-        this.tryInit(d);
-      });
-    } else {
-      this.tryInit(data);
-    }
+    const data = await this.loadData(useCache);
+    const ignoreData = useCache && isFunction(data);
+
+    await this.loadIns(data, useCache, ignoreData);
+    this.busy = false;
   }
 
-  tryInit(data) {
+  async loadData(useCache) {
+    const { data } = this.props;
+
+    let fData = data;
+    if (isFunction(data) && !useCache) {
+      await data()
+        .then(d => {
+          fData = d;
+        })
+        .catch(() => {
+          console.error('failed to fetch data'); // eslint-disable-line no-console
+        });
+    }
+
+    return fData;
+  }
+
+  async loadIns(data, useCache, ignoreData) {
     const {
       name,
       width,
@@ -169,12 +107,8 @@ class RGCaptcha extends React.Component {
       timeout,
     } = this.props;
 
-    const newConfig = {
-      gt: data.gt,
-      challenge: data.challenge,
-      offline: !data.success,
-      new_captcha: !!data.new_captcha,
-      width: isNumber(width) ? `${width}px` : width,
+    const config = {
+      width,
       product,
       lang,
       protocol,
@@ -184,30 +118,24 @@ class RGCaptcha extends React.Component {
       timeout,
     };
 
-    try {
-      // http://docs.geetest.com/install/client/web-front/
-      setTimeout(() => {
-        initGeetest(newConfig, newIns => {
-          buildInsEventFunc(newIns);
-
-          storage.add(name, newIns);
-          this.loadIns(newIns);
-          if (this.mounted)
-            this.setState({
-              loading: false,
-            });
-        });
-      }, 0);
-    } catch (e) {
-      console.error(e); // eslint-disable-line
-    }
-  }
-
-  loadIns(ins) {
-    this.ins = ins;
-
-    this.bindEventFunc(this.props);
-    this.show();
+    await storage
+      .create(name, config, data, useCache, ignoreData)
+      .then(ins => {
+        if (ins !== this.ins) this.showed = false;
+        this.ins = ins;
+        this.bindEventFunc(this.props);
+        this.show();
+      })
+      .catch(() => {
+        console.error('failed to initialize'); // eslint-disable-line no-console
+      })
+      .finally(() => {
+        if (this.mounted) {
+          this.setState({
+            loading: false,
+          });
+        }
+      });
   }
 
   bindEventFunc(props) {
@@ -223,12 +151,24 @@ class RGCaptcha extends React.Component {
 
   show() {
     const { product } = this.props;
-    const { ins, box } = this;
-    if (ins && box && product !== 'bind') ins.appendTo(box);
+    const { ins, box, showed } = this;
+    if (ins && box && !showed && product !== 'bind') {
+      while (box.firstChild) {
+        box.removeChild(box.firstChild);
+      }
+      ins.appendTo(box);
+      this.showed = true;
+    }
   }
 
   render() {
-    const { product, loadingComponent, loadingText } = this.props;
+    const {
+      product,
+      loadingComponent,
+      loadingText,
+      style = {},
+      className,
+    } = this.props;
     const { loading } = this.state;
 
     let LoadingTemp;
@@ -241,13 +181,13 @@ class RGCaptcha extends React.Component {
       LoadingTemp = <DefaultLoading loading={loading} text={loadingText} />;
     }
 
+    const dStyle = defaults(style, {
+      display: product === 'bind' ? 'none' : 'block',
+      height: 44,
+    });
+
     return (
-      <div
-        style={{
-          display: product === 'bind' ? 'none' : 'block',
-          height: 44,
-        }}
-      >
+      <div style={dStyle} className={className}>
         {LoadingTemp}
         <div
           style={{ display: loading ? 'none' : 'block' }}
@@ -287,9 +227,10 @@ RGCaptcha.propTypes = {
   onClose: PropTypes.func,
   onError: PropTypes.func,
   //
-  shouldReinitialize: PropTypes.func,
   loadingComponent: PropTypes.func,
   loadingText: PropTypes.string,
+  style: PropTypes.object, // eslint-disable-line react/forbid-prop-types
+  className: PropTypes.string,
 };
 
 RGCaptcha.defaultProps = {
@@ -305,9 +246,10 @@ RGCaptcha.defaultProps = {
   onSuccess: null,
   onClose: null,
   onError: null,
-  shouldReinitialize: null,
   loadingComponent: null,
   loadingText: 'loading...',
+  style: null,
+  className: '',
 };
 
 export default RGCaptcha;

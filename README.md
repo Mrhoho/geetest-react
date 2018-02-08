@@ -29,7 +29,6 @@ a react.js component for GEETEST
         - [The "resultObject":](#the-resultobject)
       - [`onClose?: () => any`](#onclose---any)
       - [`onError?: () => any`](#onerror---any)
-      - [`shouldReinitialize?: (props: Props, nextProps: Props) => boolean`](#shouldreinitialize-props-props-nextprops-props--boolean)
       - [`loadingComponent?: React.Component<{loading: boolean}>`](#loadingcomponent-reactcomponentloading-boolean)
       - [`loadingText?: string`](#loadingtext-string)
   - [`appendTo: (name: string) => any`](#appendto-name-string--any)
@@ -214,8 +213,6 @@ resultObject = instance.getValidate();
 ##### `onClose?: () => any`
 
 ##### `onError?: () => any`
-
-##### `shouldReinitialize?: (props: Props, nextProps: Props) => boolean`
 
 ##### `loadingComponent?: React.Component<{loading: boolean}>`
 
