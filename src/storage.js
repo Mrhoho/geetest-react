@@ -106,7 +106,7 @@ class Storage {
     if (this.exist(name)) {
       return this.instances[name];
     }
-    return null;
+    return {};
   }
 
   remove(name) {
