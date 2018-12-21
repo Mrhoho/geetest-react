@@ -18,7 +18,7 @@ a react.js component for GEETEST
         - [The "dataObject":](#the-dataobject)
       - [`width?: string | number`](#width-string--number)
       - [`product?: 'popup' | 'float' | 'custom' | 'bind'`](#product-popup--float--custom--bind)
-      - [`lang?: 'zh-cn' | 'en'`](#lang-zh-cn--en)
+      - [`lang?: 'zh-cn'|'zh-hk'|'zh-tw'|'en'|'ja'|'ko'|'ru'|'ar'|'es'|'pt-pt'|'fr'|'de'`](#lang-zh-cn--en)
       - [`protocol?: 'http://' | 'https://'`](#protocol-http--https)
       - [`area?: string`](#area-string)
       - [`nextWidth?: string`](#nextwidth-string)
@@ -182,7 +182,7 @@ class Demo extends React.Component {
 
 ##### `product?: 'popup' | 'float' | 'custom' | 'bind'`
 
-##### `lang?: 'zh-cn' | 'en'`
+##### `lang?: 'zh-cn' | 'zh-hk' | 'zh-tw' | 'en' | 'ja' | 'ko' | 'ru' | 'ar' | 'es' | 'pt-pt' | 'fr' | 'de'`
 
 ##### `protocol?: 'http://' | 'https://'`
 
